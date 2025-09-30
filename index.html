@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>&lt;잔향&gt;</title>
+  <style>
+    :root{
+      --gap: clamp(24px, 10vw, 50px);
+      --card-w: min(88vw, 420px);
+      --ratio: 1.414; /* √2 */
+      --radius: 0px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple SD Gothic Neo","Noto Sans KR","맑은 고딕",sans-serif;
+      overflow:hidden;
+    }
+    #app{
+      height:100%;
+      display:grid;
+      place-items:center;
+      touch-action:pan-y;
+    }
+
+    /* ===== Stack view ===== */
+    .stack{
+      position:relative;
+      width:var(--card-w);
+      height:calc(var(--card-w) * var(--ratio));
+    }
+    .card{
+      position:absolute;
+      left:50%; top:50%;
+      width:100%; height:100%;
+      object-fit:cover;
+      transform:translate(-50%,-50%);
+      border-radius:var(--radius);
+      filter:drop-shadow(0 14px 24px rgba(0,0,0,.18));
+      transition:
+        transform 480ms cubic-bezier(0.22,1,0.36,1),
+        filter 480ms cubic-bezier(0.22,1,0.36,1),
+        opacity 480ms cubic-bezier(0.22,1,0.36,1);
+      user-select:none; -webkit-user-drag:none; pointer-events:none;
+      opacity:0; background:#fff;
+    }
+    .card.ready{opacity:1}
+    .card.top{filter:drop-shadow(0 24px 40px rgba(0,0,0,.25))}
+
+    .hint{
+      position:fixed; inset:auto 0 18px 0; text-align:center;
+      font-size:12px; color:#6b7280; letter-spacing:.02em; user-select:none;
+    }
+
+    /* ===== ViewAll gallery ===== */
+    .gallery{
+        padding: 0px 16px;
+        width: 100vw;
+      position:fixed; inset:0; display:none;
+      display:flex; flex-wrap:nowrap; gap:0;
+      align-items:center; justify-content:flex-start;
+      overflow-x:auto; overflow-y:hidden;
+      -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
+      background:#e5e7eb;
+    }
+    .gallery::-webkit-scrollbar{display:none}
+    .gimg{
+      flex:0 0 auto;
+      width:80vw; max-width:80vw; /* 요청사항1 */
+      height:auto; display:block; margin:0; padding:0; border:0;
+    }
+
+    /* ===== CTA button ===== */
+    #viewAllBtn{
+      position:absolute; left:50%;
+      bottom:-15%;
+      transform:translateX(-50%);
+      z-index:2147483647;
+      font-size:16px; line-height:1;
+      padding:16px 28px; width:80vw; max-width:480px;
+      border-radius:9999px; box-shadow:0 10px 22px rgba(0,0,0,.25);
+      border:0; background:#000; color:#fff; /* 기본: View All */
+    }
+    #viewAllBtn:active{transform:translateX(-50%) translateY(1px)}
+
+        #backViewBtn{
+      position:absolute; left:50%;
+      bottom:-15%;
+      transform:translateX(-50%);
+      z-index:2147483647;
+      font-size:16px; line-height:1;
+      padding:16px 28px; width:80vw; max-width:480px;
+      border-radius:9999px; box-shadow:0 10px 22px rgba(0,0,0,.25);
+      border:0; background:#000; color:#fff; /* 기본: View All */
+    }
+    #backViewBtn:active{transform:translateX(-50%) translateY(1px)}
+
+    @media (min-width:640px){
+      :root{--card-w:min(70vw,520px)}
+    }
+    @media (prefers-reduced-motion:reduce){ .card{transition:none} }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Stack view -->
+    <div class="stack" id="stack">
+      <button id="viewAllBtn" type="button">View All</button>
+      <img class="card" src="1.png" alt="포스터 1" draggable="false" />
+      <img class="card" src="2.png" alt="포스터 2" draggable="false" />
+      <img class="card" src="3.png" alt="포스터 3" draggable="false" />
+    </div>
+
+    <!-- ViewAll gallery -->
+    <div class="gallery" id="gallery" aria-hidden="true" style="display:none;">
+      <img class="gimg" src="1.png" alt="포스터 1" />
+      <img class="gimg" src="2.png" alt="포스터 2" />
+      <img class="gimg" src="3.png" alt="포스터 3" />
+    </div>
+    <button id="backViewBtn" type="button" style="display:none; position:fixed; left:50%; bottom:5%; transform:translateX(-50%); z-index:2147483647; font-size:16px; line-height:1; padding:16px 28px; width:80vw; max-width:480px; border-radius:9999px; box-shadow:0 10px 22px rgba(0,0,0,.25); border:1px solid #000; background:#fff; color:#000;">Back View</button>
+  </div>
+
+  
+
+  <script>
+  (() => {
+  const stack = document.getElementById('stack');
+  const cards = Array.from(stack.querySelectorAll('.card'));
+  const gallery = document.getElementById('gallery');
+  const viewAllBtn = document.getElementById('viewAllBtn');
+  const backViewBtn = document.getElementById('backViewBtn');
+
+    // ===== stack layout (기존 스와이프) =====
+    let order = [0,1,2];
+    let isPointerDown=false, startX=0, dx=0, lastX=0, lastT=0, velocity=0;
+
+    function applyLayout(instant=false){
+      const w = stack.clientWidth;
+      const offsetX = Math.min(0.32*w,140);
+      const offsetY = Math.max(12, 0.04*w);
+      const slots = [
+        {tx:0,        ty:0,        scale:1.00, rot:0,   z:30, top:true},
+        {tx:+offsetX, ty:+offsetY, scale:0.94, rot:+8,  z:20, top:false},
+        {tx:-offsetX, ty:+offsetY, scale:0.94, rot:-8,  z:10, top:false},
+      ];
+      order.forEach((cardIdx, slotIdx)=>{
+        const card = cards[cardIdx];
+        const S = slots[slotIdx];
+        if(instant) card.style.transition='none';
+        card.style.zIndex = S.z;
+        card.classList.toggle('top', S.top);
+        let t = `translate(-50%,-55%) translate(${S.tx}px,${S.ty}px) rotate(${S.rot}deg) scale(${S.scale})`;
+        if(slotIdx===0 && isPointerDown){
+          t = `translate(-50%,-55%) translate(${S.tx + dx*0.25}px,${S.ty}px) rotate(${S.rot + dx*0.02}deg) scale(${S.scale})`;
+        }
+        card.style.transform = t;
+        card.classList.add('ready');
+        if(instant) requestAnimationFrame(()=>card.style.removeProperty('transition'));
+      });
+    }
+    function intro(){
+      cards.forEach((card,i)=>{
+        card.style.opacity='0'; card.style.transform += ' translateY(30px)';
+        void card.offsetWidth;
+        setTimeout(()=>{ card.style.opacity='1'; applyLayout(); }, 120 + i*120);
+      });
+    }
+    function next(){ order=[order[1],order[2],order[0]]; applyLayout(); }
+    function prev(){ order=[order[2],order[0],order[1]]; applyLayout(); }
+
+    function onDown(x,e){ isPointerDown=true; startX=lastX=x; lastT=performance.now(); velocity=0; dx=0;
+      if(e && e.pointerId!=null && stack.setPointerCapture) stack.setPointerCapture(e.pointerId);
+      applyLayout(true);
+    }
+    function onMove(x){ if(!isPointerDown) return; const now=performance.now(); const dt=Math.max(1, now-lastT);
+      velocity=(x-lastX)/dt; lastX=x; lastT=now; dx=x-startX; applyLayout(true);
+    }
+    function onUp(e){ if(!isPointerDown) return; isPointerDown=false;
+      if(e && e.pointerId!=null && stack.releasePointerCapture) stack.releasePointerCapture(e.pointerId);
+      const width=stack.clientWidth; const swipe=Math.abs(dx)>width*0.12; const fling=Math.abs(velocity)>0.5;
+      if(dx<0 && (swipe||fling)) next(); else if(dx>0 && (swipe||fling)) prev(); else applyLayout(); dx=0;
+    }
+
+    stack.addEventListener('pointerdown',(e)=>{ if(e.pointerType==='mouse' && e.button!==0) return; onDown(e.clientX,e); }, {passive:true});
+    window.addEventListener('pointermove',(e)=>onMove(e.clientX), {passive:true});
+    window.addEventListener('pointerup',(e)=>onUp(e), {passive:true});
+    window.addEventListener('pointercancel',(e)=>onUp(e), {passive:true});
+    window.addEventListener('keydown',(e)=>{ if(e.key==='ArrowLeft') prev(); if(e.key==='ArrowRight') next(); });
+    window.addEventListener('resize',()=>applyLayout(true));
+
+    // init stack
+    applyLayout(true); intro();
+
+    // ===== View All toggle =====
+    viewAllBtn.addEventListener('click', ()=>{
+      stack.style.display = 'none';
+      gallery.style.display = 'flex';
+      backViewBtn.style.display = '';
+    });
+    backViewBtn.addEventListener('click', ()=>{
+      gallery.style.display = 'none';
+      stack.style.display = '';
+      backViewBtn.style.display = 'none';
+      applyLayout(true);
+    });
+  })();
+  </script>
+</body>
+</html>
