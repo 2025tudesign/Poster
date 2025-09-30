@@ -65,23 +65,26 @@
       overflow-x:auto; overflow-y:hidden;
       -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
       background:#e5e7eb;
+      
     }
     .gallery::-webkit-scrollbar{display:none}
     .gimg{
       flex:0 0 auto;
-      width:80vw; max-width:80vw; /* 요청사항1 */
+      width:86vw;
       height:auto; display:block; margin:0; padding:0; border:0;
+      margin-bottom: 72px;
+      
     }
 
     /* ===== CTA button ===== */
     #viewAllBtn{
       position:absolute; left:50%;
-      bottom:-15%;
+      bottom: -64px;
       transform:translateX(-50%);
       z-index:2147483647;
       font-size:16px; line-height:1;
       padding:16px 28px; width:80vw; max-width:480px;
-      border-radius:9999px; box-shadow:0 10px 22px rgba(0,0,0,.25);
+      border-radius:9999px;
       border:0; background:#000; color:#fff; /* 기본: View All */
     }
     #viewAllBtn:active{transform:translateX(-50%) translateY(1px)}
@@ -93,7 +96,7 @@
       z-index:2147483647;
       font-size:16px; line-height:1;
       padding:16px 28px; width:80vw; max-width:480px;
-      border-radius:9999px; box-shadow:0 10px 22px rgba(0,0,0,.25);
+      border-radius:9999px;
       border:0; background:#000; color:#fff; /* 기본: View All */
     }
     #backViewBtn:active{transform:translateX(-50%) translateY(1px)}
@@ -120,7 +123,7 @@
       <img class="gimg" src="2.png" alt="포스터 2" />
       <img class="gimg" src="3.png" alt="포스터 3" />
     </div>
-    <button id="backViewBtn" type="button" style="display:none; position:fixed; left:50%; bottom:5%; transform:translateX(-50%); z-index:2147483647; font-size:16px; line-height:1; padding:16px 28px; width:80vw; max-width:480px; border-radius:9999px; box-shadow:0 10px 22px rgba(0,0,0,.25); border:1px solid #000; background:#fff; color:#000;">Back View</button>
+    <button id="backViewBtn" type="button" style="display:none; max-height: 48px; position:fixed; left:50%; bottom:36px; transform:translateX(-50%); z-index:2147483647; font-size:16px; line-height:1; padding:16px 28px; width:80vw; border-radius:9999px;  border:1px solid #000; background:#fff; color:#000;">Back View</button>
   </div>
 
   
@@ -152,9 +155,9 @@
         if(instant) card.style.transition='none';
         card.style.zIndex = S.z;
         card.classList.toggle('top', S.top);
-        let t = `translate(-50%,-55%) translate(${S.tx}px,${S.ty}px) rotate(${S.rot}deg) scale(${S.scale})`;
+        let t = `translate(-50%,-59%) translate(${S.tx}px,${S.ty}px) rotate(${S.rot}deg) scale(${S.scale})`;
         if(slotIdx===0 && isPointerDown){
-          t = `translate(-50%,-55%) translate(${S.tx + dx*0.25}px,${S.ty}px) rotate(${S.rot + dx*0.02}deg) scale(${S.scale})`;
+          t = `translate(-50%,-59%) translate(${S.tx + dx*0.25}px,${S.ty}px) rotate(${S.rot + dx*0.02}deg) scale(${S.scale})`;
         }
         card.style.transform = t;
         card.classList.add('ready');
