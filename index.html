@@ -57,7 +57,7 @@
 
     /* ===== ViewAll gallery ===== */
     .gallery{
-        padding: 0px 16px;
+        padding: 0px 20px;
         width: 100vw;
       position:fixed; inset:0; display:none;
       display:flex; flex-wrap:nowrap; gap:0;
@@ -79,7 +79,7 @@
     /* ===== CTA button ===== */
     #viewAllBtn{
       position:absolute; left:50%;
-      bottom: -64px;
+      bottom: -52px;
       transform:translateX(-50%);
       z-index:2147483647;
       font-size:16px; line-height:1;
@@ -91,7 +91,7 @@
 
         #backViewBtn{
       position:absolute; left:50%;
-      bottom:-15%;
+      
       transform:translateX(-50%);
       z-index:2147483647;
       font-size:16px; line-height:1;
@@ -122,8 +122,9 @@
       <img class="gimg" src="1.png" alt="포스터 1" />
       <img class="gimg" src="2.png" alt="포스터 2" />
       <img class="gimg" src="3.png" alt="포스터 3" />
+      <button id="backViewBtn" type="button" style="display:none; max-height: 48px; position:absolute; left:50%; bottom:48px; transform:translateX(-50%); z-index:2147483647; font-size:16px; line-height:1; padding:16px 28px; width:80vw; border-radius:9999px;  border:1px solid #000; background:#fff; color:#000;">Back View</button>
     </div>
-    <button id="backViewBtn" type="button" style="display:none; max-height: 48px; position:fixed; left:50%; bottom:36px; transform:translateX(-50%); z-index:2147483647; font-size:16px; line-height:1; padding:16px 28px; width:80vw; border-radius:9999px;  border:1px solid #000; background:#fff; color:#000;">Back View</button>
+    
   </div>
 
   
@@ -155,9 +156,9 @@
         if(instant) card.style.transition='none';
         card.style.zIndex = S.z;
         card.classList.toggle('top', S.top);
-        let t = `translate(-50%,-59%) translate(${S.tx}px,${S.ty}px) rotate(${S.rot}deg) scale(${S.scale})`;
+        let t = `translate(-50%,-58.5%) translate(${S.tx}px,${S.ty}px) rotate(${S.rot}deg) scale(${S.scale})`;
         if(slotIdx===0 && isPointerDown){
-          t = `translate(-50%,-59%) translate(${S.tx + dx*0.25}px,${S.ty}px) rotate(${S.rot + dx*0.02}deg) scale(${S.scale})`;
+          t = `translate(-50%,-58.5%) translate(${S.tx + dx*0.25}px,${S.ty}px) rotate(${S.rot + dx*0.02}deg) scale(${S.scale})`;
         }
         card.style.transform = t;
         card.classList.add('ready');
